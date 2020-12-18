@@ -23,7 +23,7 @@ def preprogress(img):
     show('balck_hat', balck_hat)
 
     # 二值化
-    _, threshold = cv.threshold(balck_hat, 1, 255, cv.THRESH_OTSU)
+    _, threshold = cv.threshold(balck_hat, 37, 255, cv.THRESH_BINARY)
     show('threshold', threshold)
 
     # 二值化反转黑白
@@ -67,8 +67,8 @@ def bounding_box(c):
         if len(approxBox) > 4:
             epsilon += 1
             continue
-        else:           # approx的长度为4，表明已经拟合成矩形了
-            approxBox = approxBox.reshape((4, 2))                   # 转换成4*2的数组
+        else:  # approx的长度为4，表明已经拟合成矩形了
+            approxBox = approxBox.reshape((4, 2))  # 转换成4*2的数组
             return approxBox
 
 
@@ -86,13 +86,21 @@ def perspective_transform(img, points):
 
 
 # 将网格内的每个数字截取出来
-def slice_image(img, img_name):
-    for i in range(10):
-        if not os.path.exists('./data/number/' + str(i)):  # 判断是否存在文件夹如果不存在则创建为文件夹
-            os.makedirs('./data/number/' + str(i))
-        for j in range(17):
-            number = img[i * 100 + 10:i * 100 + 95, j * 100 + 100 + 10:j * 100 + 100 + 90]
-            cv.imwrite('./data/number/{}/{}_{}_{}.jpg'.format(i, img_name, i, j), number)
+def slice_image(img, img_name, j):
+    for number in range(10):
+        if not os.path.exists('./data/number/' + str(number)):  # 判断是否存在文件夹如果不存在则创建为文件夹
+            os.makedirs('./data/number/' + str(number))
+        for order in range(17):
+            number_image = img[number * 100 + 15:number * 100 + 87, order * 100 + 100 + 10:order * 100 + 100 + 90]
+            # 筛选出空白格子
+            cnt = 0
+            for k0 in range(number_image.shape[0]):
+                for k1 in range(number_image.shape[1]):
+                    if number_image[k0][k1] == 0:
+                        cnt = cnt + 1
+            if cnt < 50:
+                continue
+            cv.imwrite('./data/number/{}/{}_{}_{}_{}.jpg'.format(number, img_name, number, j, order), number_image)
 
 
 def main():
@@ -100,6 +108,7 @@ def main():
     if len(image_list) == 0:
         print('请创建\'data/raw_image\'文件夹，并将原始图片放入这个文件夹')
     for i in range(len(image_list)):
+    # for i in range(15, 16):
         raw_image = cv.imread('data/raw_image/' + image_list[i])
         if raw_image.shape[0] < raw_image.shape[1]:  # 部分图像方向错误，需左转
             rotate_image = cv.rotate(raw_image, cv2.cv2.ROTATE_90_COUNTERCLOCKWISE)
@@ -111,14 +120,15 @@ def main():
         contours.sort(key=cnt_area, reverse=True)
         contours_image = raw_image.copy()
 
-        for j in range(1, 3):  # 获取上下两部分的两个大框
+        for j in range(1, 3):  # 获取第二第三大的轮廓（第一大是整张图的框），即上下两部分的两个大框
             box = bounding_box(contours[j])
             box = order_points(box)
 
             cv.drawContours(contours_image, [box], -1, (0, 0, 255), 10)
             trans = perspective_transform(bianry_image, box)
             show('transform' + str(j), trans, (900, 500))
-            slice_image(trans, image_list[i][11:17])
+            slice_image(trans, image_list[i][11:17], j)
+        show('contours_image', contours_image)
 
         cv.waitKey(500)
         time.sleep(5)
