@@ -3,20 +3,19 @@ import os
 import time
 
 import cv2 as cv
-import cv2
 import numpy as np
 
 
 # 显示图片
 def show(window_name, img_name, size=(600, 800)):
-    cv2.namedWindow(str(window_name), cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(str(window_name), size[0], size[1])  # 改变窗口大小
-    cv2.imshow(str(window_name), img_name)
+    cv.namedWindow(str(window_name), cv.WINDOW_NORMAL)
+    cv.resizeWindow(str(window_name), size[0], size[1])  # 改变窗口大小
+    cv.imshow(str(window_name), img_name)
 
 
 # 图片预处理，返回二值化图片
 def preprogress(img):
-    gray = cv.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     # 黑帽运算
     kernel = np.ones((20, 20), np.uint8)
     balck_hat = cv.morphologyEx(gray, cv.MORPH_BLACKHAT, kernel)
@@ -53,7 +52,7 @@ def order_points(pts):
 
 # 对轮廓大小进行排序
 def cnt_area(cnt):
-    area = cv2.contourArea(cnt)
+    area = cv.contourArea(cnt)
     return area
 
 
@@ -61,7 +60,7 @@ def cnt_area(cnt):
 def bounding_box(c):
     epsilon = 1
     while True:
-        approxBox = cv2.approxPolyDP(c, epsilon, True)
+        approxBox = cv.approxPolyDP(c, epsilon, True)
         if len(approxBox) < 4:
             return None
         if len(approxBox) > 4:
@@ -111,12 +110,12 @@ def main():
     # for i in range(15, 16):
         raw_image = cv.imread('data/raw_image/' + image_list[i])
         if raw_image.shape[0] < raw_image.shape[1]:  # 部分图像方向错误，需左转
-            rotate_image = cv.rotate(raw_image, cv2.cv2.ROTATE_90_COUNTERCLOCKWISE)
+            rotate_image = cv.rotate(raw_image, cv.cv.ROTATE_90_COUNTERCLOCKWISE)
             cv.imwrite('data/raw_image/' + image_list[i], rotate_image)
             raw_image = rotate_image
         bianry_image = preprogress(raw_image)
 
-        contours, hierarchy = cv2.findContours(bianry_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        contours, hierarchy = cv.findContours(bianry_image, cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
         contours.sort(key=cnt_area, reverse=True)
         contours_image = raw_image.copy()
 
