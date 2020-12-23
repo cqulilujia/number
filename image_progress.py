@@ -1,4 +1,3 @@
-import math
 import os
 import time
 
@@ -129,7 +128,7 @@ def main():
             slice_image(trans, image_list[i][11:17], j)
         show('contours_image', contours_image)
 
-        cv.waitKey(500)
+        cv.waitKey(5)
         time.sleep(5)
         cv.destroyAllWindows()
         print(image_list[i], 'finished.')
